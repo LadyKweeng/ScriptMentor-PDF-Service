@@ -1,0 +1,55 @@
+{
+  "characters": {
+    "HANNAH": {
+      "appearances": 1,
+      "arc_phase": "",
+      "dialogueCount": 2,
+      "emotional_state": "",
+      "notes": "Appears in 1 scenes with 2 lines of dialogue",
+      "scenes_present": [
+        "scene_001"
+      ],
+      "support": [],
+      "triggers": []
+    }
+  },
+  "enhancedParsing": true,
+  "metadata": {
+    "author": "anonymous",
+    "processedVia": "railway-pdfplumber",
+    "title": "untitled",
+    "uploadType": "pdf"
+  },
+  "quality": {
+    "characterDetection": 1.0,
+    "dialogueActionBalance": 0.067,
+    "metrics": {
+      "totalActionBlocks": 58,
+      "totalCharacters": 1,
+      "totalDialogueBlocks": 2,
+      "totalPages": 1,
+      "totalScenes": 0,
+      "totalWords": 161
+    },
+    "overallScore": 0.299,
+    "pagePreservation": 0.644,
+    "sceneDetection": 0.0
+  },
+  "railwayProcessing": {
+    "enhanced": true,
+    "patternsVersion": "2.0",
+    "qualityScore": 0.299
+  },
+  "scenes": [
+    {
+      "characters": [
+        "HANNAH"
+      ],
+      "content": "            The view of our home two hundred and thirty-eight thousand miles away is majestic, peaceful, serene.\n\n\n                                      HANNAH  (V.O.)\n                         Welcome to the metaverse. The\n                         single most important evolution in\n                         technology since the invention of\n                         the wheel. The greatest re-\n                         distribution of wealth in human\n                         history. A time unlike any other,\n                         where the little guy will finally\n                         get a piece of the pie... That's\n                         the pitch, anyway.\n\n            As we push in on Planet Earth, a precipitous montage of\n            significant global events unfolds. We see the truth. Our\n\n            truth. The reality of our world as we know it.\n\n\n                                      HANNAH  (V.O.)\n                         But what all this clickbait PR\n                         really means is the already rich\n                         are just fleecing the perpetual\n                         poor. A techno-feudal Ponzi scheme\n                         where somebody wins and everybody\n                         else can fuck right off.\n\n            Girls protest in Iran. Proud Boys storm the Capitol. The\n            World Trade Center is attacked. Princess Diana is laid to\n            rest. Oil fields are on fire in Iraq. Rodney King is beaten.",
+      "heading": "",
+      "page_end": 1,
+      "page_start": 1
+    }
+  ],
+  "totalPages": 1
+}

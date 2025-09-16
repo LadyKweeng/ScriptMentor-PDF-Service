@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "build": {
+    "builder": "dockerfile",
+    "buildCommand": "echo 'Building from railway-pdf-service directory'",
+    "buildPath": "railway-pdf-service"
+  },
+  "deploy": {
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 60,
+    "startCommand": "python app.py"
+  }
+}
