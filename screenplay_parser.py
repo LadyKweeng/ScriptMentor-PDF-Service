@@ -3,6 +3,7 @@ import re
 from typing import Dict, List, Any
 from utils.pattern_enhancer import EnhancedScreenplayPatterns
 from utils.quality_calculator import QualityCalculator
+from utils.title_page_detector import TitlePageDetector
 from rtf_formatter import RTFFormatter
 import logging
 
@@ -708,6 +709,7 @@ class ScreenplayParser:
         self.quality_calc = QualityCalculator()
         self.rtf_formatter = RTFFormatter()
         self.classifier = ElementClassifier()  # Add context-aware classifier
+        self.title_page_detector = TitlePageDetector()  # Enhanced title page detection
     
     def parse_pdf(self, pdf_path: str) -> Dict[str, Any]:
         """
@@ -743,9 +745,13 @@ class ScreenplayParser:
             return result
     
     def _extract_pages(self, pdf) -> List[Dict]:
-        """Extract pages with proper layout preservation for screenplay formatting"""
-        pages_data = []
-        
+        """
+        Extract pages with enhanced title page detection and screenplay start identification.
+        Automatically skips title pages and starts from the actual screenplay content.
+        """
+        # STEP 1: Extract all pages first
+        all_pages_data = []
+
         for page_num, page in enumerate(pdf.pages, 1):
             # ENHANCED: Fine-tuned spatial parameters for 99% accuracy
             page_text = page.extract_text(
@@ -757,14 +763,14 @@ class ScreenplayParser:
                 x_density=7.25,           # Optimal for screenplay format
                 y_density=13              # Maintain line spacing
             )
-            
+
             # Also extract with character-level detail for position analysis
             chars = page.chars if hasattr(page, 'chars') else []
-            
+
             # Clean common PDF artifacts BEFORE processing
             page_text = self._clean_extraction_artifacts(page_text) if page_text else ""
-            
-            pages_data.append({
+
+            all_pages_data.append({
                 'page_num': page_num,
                 'text': page_text,
                 'chars': chars,
@@ -774,9 +780,31 @@ class ScreenplayParser:
                 'width': page.width,
                 'height': page.height
             })
-        
-        logger.info(f"Extracted {page_num} pages with layout preservation")
-        return pages_data
+
+        logger.info(f"📄 Extracted {len(all_pages_data)} total pages from PDF")
+
+        # STEP 2: Enhanced title page detection and screenplay start identification
+        screenplay_start_index, detection_reason = self.title_page_detector.detect_title_pages(all_pages_data)
+
+        # STEP 3: Filter pages to include only screenplay content
+        screenplay_pages = all_pages_data[screenplay_start_index:]
+
+        # STEP 4: Renumber pages to start from 1 for screenplay content
+        for i, page_data in enumerate(screenplay_pages):
+            page_data['screenplay_page_num'] = i + 1
+            page_data['original_page_num'] = page_data['page_num']
+            page_data['page_num'] = i + 1  # Renumber for consistency
+
+        # STEP 5: Log results
+        if screenplay_start_index > 0:
+            logger.info(f"📋 Title page detection: {detection_reason}")
+            logger.info(f"⏭️  Skipped {screenplay_start_index} title page(s), starting screenplay from original page {screenplay_start_index + 1}")
+            logger.info(f"📖 Processing {len(screenplay_pages)} screenplay pages (renumbered 1-{len(screenplay_pages)})")
+        else:
+            logger.info(f"📄 {detection_reason}")
+            logger.info(f"📖 Processing all {len(screenplay_pages)} pages as screenplay content")
+
+        return screenplay_pages
     
     def _detect_scenes(self, pages_data: List[Dict]) -> List[str]:
         """Detect scene headings using enhanced patterns"""
