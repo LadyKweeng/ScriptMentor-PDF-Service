@@ -83,6 +83,10 @@ def parse_screenplay():
                 result = parser.parse_pdf(pdf_path)
                 result['metadata']['uploadType'] = 'fdx'
                 result['metadata']['processedVia'] = 'railway-hybrid-fdx-pdf'
+
+                # MINIMAL FIX: Set title from filename if not found
+                if not result['metadata'].get('title') or result['metadata']['title'] == 'Untitled Screenplay':
+                    result['metadata']['title'] = os.path.splitext(filename)[0]
                 
                 # Clean up converted PDF
                 if os.path.exists(pdf_path):
