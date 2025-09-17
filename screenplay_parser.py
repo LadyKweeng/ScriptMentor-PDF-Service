@@ -745,8 +745,16 @@ class ScreenplayParser:
     def _extract_pages(self, pdf) -> List[Dict]:
         """Extract pages with proper layout preservation for screenplay formatting"""
         pages_data = []
-        
+
+        # ENHANCEMENT: Find first page with actual script content
+        script_start_page = self._find_script_start_page(pdf)
+        logger.info(f"📄 Script content starts at page: {script_start_page}")
+
         for page_num, page in enumerate(pdf.pages, 1):
+            # Skip pages before script content
+            if page_num < script_start_page:
+                logger.info(f"⏭️ Skipping title/pre-content page {page_num}")
+                continue
             # ENHANCED: Fine-tuned spatial parameters for 99% accuracy
             page_text = page.extract_text(
                 layout=True,              # Preserve layout positioning
@@ -775,8 +783,59 @@ class ScreenplayParser:
                 'height': page.height
             })
         
-        logger.info(f"Extracted {page_num} pages with layout preservation")
+        logger.info(f"Extracted {len(pages_data)} script pages (skipped {script_start_page - 1} title pages)")
         return pages_data
+
+    def _find_script_start_page(self, pdf) -> int:
+        """Find the first page that contains actual script content (not title page)"""
+        for page_num, page in enumerate(pdf.pages, 1):
+            if page_num > 5:  # Don't search beyond page 5 for efficiency
+                break
+
+            page_text = page.extract_text()
+            if not page_text:
+                continue
+
+            lines = page_text.split('\n')
+            script_indicators = 0
+            title_indicators = 0
+
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+
+                # Check for script content indicators
+                if self.patterns.is_scene_heading(line):
+                    script_indicators += 5  # Strong indicator
+                elif self.patterns.is_character_name(line):
+                    script_indicators += 3
+                elif line.upper() == line and 10 < len(line) < 50:  # Possible scene heading
+                    script_indicators += 2
+                elif 'INT.' in line.upper() or 'EXT.' in line.upper():
+                    script_indicators += 4
+                elif 'FADE IN' in line.upper() or 'FADE OUT' in line.upper():
+                    script_indicators += 5
+
+                # Check for title page indicators
+                if self._is_title_page_content(line):
+                    title_indicators += 2
+                elif any(word in line.lower() for word in ['written by', 'author', 'draft', 'version']):
+                    title_indicators += 3
+                elif '@' in line and '.' in line:  # Email
+                    title_indicators += 4
+                elif re.match(r'\d{1,2}[./]\d{1,2}[./]\d{2,4}', line):  # Date
+                    title_indicators += 3
+
+            logger.info(f"📊 Page {page_num}: Script indicators: {script_indicators}, Title indicators: {title_indicators}")
+
+            # If this page has strong script indicators and weak title indicators, start here
+            if script_indicators >= 5 and script_indicators > title_indicators:
+                return page_num
+
+        # If no clear script page found, default to page 1
+        logger.info("📄 No clear script start found, defaulting to page 1")
+        return 1
     
     def _detect_scenes(self, pages_data: List[Dict]) -> List[str]:
         """Detect scene headings using enhanced patterns"""

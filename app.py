@@ -64,7 +64,8 @@ def parse_screenplay():
         filename = secure_filename(file.filename)
         file_ext = filename.lower().split('.')[-1]
         
-        logger.info(f"Processing file: {filename} (type: {file_ext})")
+        logger.info(f"📥 Processing file: {filename} (type: {file_ext})")
+        logger.info(f"🔍 Original filename: '{file.filename}', Secure filename: '{filename}'")
         
         if file_ext not in ['pdf', 'fdx']:
             return jsonify({'error': f'Unsupported file type: {file_ext}. Use PDF or FDX files.'}), 400
@@ -84,9 +85,14 @@ def parse_screenplay():
                 result['metadata']['uploadType'] = 'fdx'
                 result['metadata']['processedVia'] = 'railway-hybrid-fdx-pdf'
 
-                # MINIMAL FIX: Set title from filename if not found
+                # FDX FILENAME FIX: Set title from filename if not found
+                logger.info(f"🔍 FDX Current title: '{result['metadata'].get('title')}'")
                 if not result['metadata'].get('title') or result['metadata']['title'] == 'Untitled Screenplay':
-                    result['metadata']['title'] = os.path.splitext(filename)[0]
+                    original_filename = os.path.splitext(filename)[0]
+                    result['metadata']['title'] = original_filename
+                    logger.info(f"📝 Set FDX title from filename: '{original_filename}'")
+                else:
+                    logger.info(f"✅ Using FDX title from file: '{result['metadata']['title']}'")
                 
                 # Clean up converted PDF
                 if os.path.exists(pdf_path):
@@ -120,6 +126,15 @@ def parse_screenplay():
                     result['metadata']['processedVia'] = 'railway-pdfplumber'
 
                 result['metadata']['uploadType'] = 'pdf'
+
+                # PDF FILENAME FIX: Set title from filename if not found
+                logger.info(f"🔍 PDF Current title: '{result['metadata'].get('title')}'")
+                if not result['metadata'].get('title') or result['metadata']['title'] == 'Untitled Screenplay':
+                    original_filename = os.path.splitext(filename)[0]
+                    result['metadata']['title'] = original_filename
+                    logger.info(f"📝 Set PDF title from filename: '{original_filename}'")
+                else:
+                    logger.info(f"✅ Using PDF title from file: '{result['metadata']['title']}'")
             
             # Add quality information
             result['railwayProcessing'] = {
