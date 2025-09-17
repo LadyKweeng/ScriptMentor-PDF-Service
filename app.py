@@ -85,14 +85,25 @@ def parse_screenplay():
                 result['metadata']['uploadType'] = 'fdx'
                 result['metadata']['processedVia'] = 'railway-hybrid-fdx-pdf'
 
-                # FDX FILENAME FIX: Set title from filename if not found
-                logger.info(f"🔍 FDX Current title: '{result['metadata'].get('title')}'")
-                if not result['metadata'].get('title') or result['metadata']['title'] == 'Untitled Screenplay':
+                # FDX FILENAME FIX: Set title from filename if not found or problematic
+                current_title = result['metadata'].get('title', '')
+                logger.info(f"🔍 FDX Current title: '{current_title}' (type: {type(current_title)})")
+
+                # Check for various problematic title values
+                problematic_titles = ['', 'Untitled Screenplay', None, 'untitled', 'UNTITLED']
+                needs_filename = (
+                    not current_title or
+                    current_title in problematic_titles or
+                    current_title.strip() == '' or
+                    '(anonymous)' in current_title.lower()
+                )
+
+                if needs_filename:
                     original_filename = os.path.splitext(filename)[0]
                     result['metadata']['title'] = original_filename
-                    logger.info(f"📝 Set FDX title from filename: '{original_filename}'")
+                    logger.info(f"📝 Set FDX title from filename: '{original_filename}' (was: '{current_title}')")
                 else:
-                    logger.info(f"✅ Using FDX title from file: '{result['metadata']['title']}'")
+                    logger.info(f"✅ Using FDX title from file: '{current_title}'")
                 
                 # Clean up converted PDF
                 if os.path.exists(pdf_path):
@@ -127,14 +138,25 @@ def parse_screenplay():
 
                 result['metadata']['uploadType'] = 'pdf'
 
-                # PDF FILENAME FIX: Set title from filename if not found
-                logger.info(f"🔍 PDF Current title: '{result['metadata'].get('title')}'")
-                if not result['metadata'].get('title') or result['metadata']['title'] == 'Untitled Screenplay':
+                # PDF FILENAME FIX: Set title from filename if not found or problematic
+                current_title = result['metadata'].get('title', '')
+                logger.info(f"🔍 PDF Current title: '{current_title}' (type: {type(current_title)})")
+
+                # Check for various problematic title values
+                problematic_titles = ['', 'Untitled Screenplay', None, 'untitled', 'UNTITLED']
+                needs_filename = (
+                    not current_title or
+                    current_title in problematic_titles or
+                    current_title.strip() == '' or
+                    '(anonymous)' in current_title.lower()
+                )
+
+                if needs_filename:
                     original_filename = os.path.splitext(filename)[0]
                     result['metadata']['title'] = original_filename
-                    logger.info(f"📝 Set PDF title from filename: '{original_filename}'")
+                    logger.info(f"📝 Set PDF title from filename: '{original_filename}' (was: '{current_title}')")
                 else:
-                    logger.info(f"✅ Using PDF title from file: '{result['metadata']['title']}'")
+                    logger.info(f"✅ Using PDF title from file: '{current_title}'")
             
             # Add quality information
             result['railwayProcessing'] = {
